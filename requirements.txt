@@ -3,3 +3,5 @@ requests
 bs4
 pony
 pydub
+progressbar2
+python-slugify

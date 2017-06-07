@@ -5,7 +5,7 @@
 import re
 import requests
 import os
-import shutil
+import progressbar
 
 from OW_lines_DBManager import Clip, Personagem
 from bs4 import BeautifulSoup
@@ -78,8 +78,11 @@ def listMaker(data, hero):
         count += 1
         
     print ("FILES COUNT: {}".format(count))
-    
+    print ("RECOVERING URLs...")
+    bar = progressbar.ProgressBar(max_value=len(finalList))
+    j = 0
     for i, item in enumerate(finalList):
+        j += 1
         url = item["URL"]
         if "\n" in url:
             continue
@@ -89,7 +92,8 @@ def listMaker(data, hero):
         for div_obj in soup.find_all("div"):
             if div_obj.has_attr("class") and div_obj["class"][0] == "fullMedia":
                 finalList[i]["URL"] = div_obj.a.get('href')
-
+        bar.update(j)
+    print ("URLs RECOVERED.\n")
     return finalList
 
 
@@ -101,10 +105,12 @@ def file_download(filelist, hero):
     direc = "DOWNLOAD/{}".format(hero)
     os.makedirs(direc+"/original")
     regex_patt = r'[^-a-z0-9_.]+'
-    
+
+    j = 0
+    bar = progressbar.ProgressBar(max_value=len(filelist))
     print ("FILE DOWNLOAD START...\n")
     for i, item in enumerate(filelist):
-        
+        j += 1
         url = item["URL"]
 
         filename = requests.utils.unquote(url.split('/')[-1])
@@ -123,7 +129,7 @@ def file_download(filelist, hero):
         mp3_file.export(file_path, format="mp3")
 
         filelist[i]["URL"] = "http://gamequotes.mooo.com/overwatch/{}".format(hero) + filename
-
+        bar.update(j)
     print ("FILE DOWNLOAD END.\n")
     return filelist
 
@@ -140,7 +146,7 @@ def get_id():  #pega o último id de fala adicionado
     else:
         id_pos = num.id
 
-    print("CURRENT ID: {}\n".format(id_pos))
+    print("CURRENT ID: {}".format(id_pos))
     return id_pos
 
 @db_session
@@ -156,15 +162,15 @@ def dbInsert(ID, hero, dbfuel):
 
 
 def main():
-    print ("SCRIPT START...\n")
-    hero = "Hanzo"
-    data = webscrap("https://overwatch.gamepedia.com/Hanzo/Quotes")
+    print ("SCRIPT START...")
+    hero = "Ana"
+    data = webscrap("https://overwatch.gamepedia.com/Ana/Quotes")
 
     filelist = listMaker(data, hero)
     dbFuel = file_download(filelist, hero)
-    print("DB INSERT START...\n")
+    print("DB INSERT START...")
     ID = get_id()
-    dbInsert(ID, hero, dbFuel)
+    #dbInsert(ID, hero, dbFuel)
     print ("DB INSERT END.\n")
     get_id()
 
