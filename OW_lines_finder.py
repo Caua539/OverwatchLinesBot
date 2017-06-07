@@ -19,10 +19,6 @@ with open('config.json') as config_file:
 @db_session
 def get_responses(query, specific_hero):
     
-    if query is None or query is '':
-        print(">>>Empty query<<<")
-        return None
-    
     result = []
 
     if specific_hero is not None:
