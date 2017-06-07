@@ -1,14 +1,17 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#pylint: disable=locally-disabled
 
 import re
 import requests
 import os
 import shutil
 
-
 from OW_lines_DBManager import Clip, Personagem
 from bs4 import BeautifulSoup
 from pony.orm import *
 from pydub import AudioSegment
+from slugify import slugify
 
 ##############################################################################################################
 #Carregando o DATABASE
@@ -94,13 +97,20 @@ def listMaker(data, hero):
 # Download dos arquivos
 
 def file_download(filelist, hero):
+    
     direc = "DOWNLOAD/{}".format(hero)
     os.makedirs(direc+"/original")
+    regex_patt = r'[^-a-z0-9_.]+'
+    
     print ("FILE DOWNLOAD START...\n")
     for i, item in enumerate(filelist):
+        
         url = item["URL"]
-        filename = url.split('/')[-1]
+
+        filename = requests.utils.unquote(url.split('/')[-1])
+        filename = slugify(filename, regex_pattern = regex_patt)
         file_path = direc + "/original/{}".format(filename)
+        
         local_file = open(file_path, 'wb')
         local_file.write(requests.get(url).content)
         local_file.close()
@@ -108,7 +118,8 @@ def file_download(filelist, hero):
         mp3_file = AudioSegment.from_file(file_path, url[-3:])
 
         filename = "/{}.mp3".format(filename.replace(filename[-4:], ''))
-        file_path = direc + filename
+        file_path =  direc + filename
+        
         mp3_file.export(file_path, format="mp3")
 
         filelist[i]["URL"] = "http://gamequotes.mooo.com/overwatch/{}".format(hero) + filename
@@ -146,8 +157,8 @@ def dbInsert(ID, hero, dbfuel):
 
 def main():
     print ("SCRIPT START...\n")
-    hero = "Genji"
-    data = webscrap("https://overwatch.gamepedia.com/Genji/Quotes")
+    hero = "Hanzo"
+    data = webscrap("https://overwatch.gamepedia.com/Hanzo/Quotes")
 
     filelist = listMaker(data, hero)
     dbFuel = file_download(filelist, hero)
