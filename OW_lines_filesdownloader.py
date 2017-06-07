@@ -74,7 +74,7 @@ def listMaker(data, hero):
         finalList.append(dicy)
         count += 1
         
-    print (count)
+    print ("FILES COUNT: {}".format(count))
     
     for i, item in enumerate(finalList):
         url = item["URL"]
@@ -96,6 +96,7 @@ def listMaker(data, hero):
 def file_download(filelist, hero):
     direc = "DOWNLOAD/{}".format(hero)
     os.makedirs(direc+"/original")
+    print ("FILE DOWNLOAD START...\n")
     for i, item in enumerate(filelist):
         url = item["URL"]
         filename = url.split('/')[-1]
@@ -104,14 +105,15 @@ def file_download(filelist, hero):
         local_file.write(requests.get(url).content)
         local_file.close()
 
-        AudioSegment.converter = "C:/ffmpeg/bin/ffmpeg.exe"
         mp3_file = AudioSegment.from_file(file_path, url[-3:])
 
-        file_path = direc + "/{}.mp3".format(filename.split(url[-4:]))
+        filename = "/{}.mp3".format(filename.replace(filename[-4:], ''))
+        file_path = direc + filename
         mp3_file.export(file_path, format="mp3")
 
-        filelist[i]["URL"] = "http://gamequotes.mooo.com/overwatch/{}/{}.mp3".format(hero, filename.split(url[-4:]))
+        filelist[i]["URL"] = "http://gamequotes.mooo.com/overwatch/{}".format(hero) + filename
 
+    print ("FILE DOWNLOAD END.\n")
     return filelist
 
 
@@ -127,7 +129,7 @@ def get_id():  #pega o último id de fala adicionado
     else:
         id_pos = num.id
 
-    print(id_pos)
+    print("CURRENT ID: {}\n".format(id_pos))
     return id_pos
 
 @db_session
@@ -138,26 +140,24 @@ def dbInsert(ID, hero, dbfuel):
         ID += 1
         line = item["Line"]
         file_url = item["URL"]
-        print (item)
         clip = Clip(id=ID, texto=line, url=file_url, personagem=hero)
         commit()
 
 
 def main():
-    print ("START\n")
-    hero = "Hanzo"
-    data = webscrap("https://overwatch.gamepedia.com/Hanzo/Quotes")
+    print ("SCRIPT START...\n")
+    hero = "Genji"
+    data = webscrap("https://overwatch.gamepedia.com/Genji/Quotes")
 
     filelist = listMaker(data, hero)
     dbFuel = file_download(filelist, hero)
-    for i in dbFuel:
-        print(i)
-    #print("DB START\n")
-    #ID = get_id()
-    #dbInsert(ID, hero, dbfuel)
-    #get_id()
+    print("DB INSERT START...\n")
+    ID = get_id()
+    dbInsert(ID, hero, dbFuel)
+    print ("DB INSERT END.\n")
+    get_id()
 
-    #print("END\n")
+    print("END.\n")
     
 if __name__ == '__main__':
     main()
