@@ -12,7 +12,7 @@ import logging
 import OW_lines_DBManager
 
 from uuid import uuid4
-from telegram import InlineQueryResultVoice
+from telegram import InlineQueryResultAudio
 from telegram.ext import Updater, CommandHandler, InlineQueryHandler
 from telegram.ext.dispatcher import run_async
 
@@ -86,16 +86,15 @@ def response_inline(bot, update):
         pass
     else:
         for each in lines:
-            heroname = each["Character"].replace('_responses', '')
-            heroname = heroname.replace('_', ' ')
-            audiodesc = heroname+" - "+"\"{}\"".format(each["Text"])
+            heroname = each["Character"]
+            audiodesc = "Character: {} --- Text: \"{}\"".format(heroname, each["Text"])
             
-            print("Character: {} --- Text: {}".format(heroname, each["Text"]))
+            print(audiodesc)
             
-            sresult = InlineQueryResultVoice(id = uuid4(),
-                                             voice_url = each["URL"],
-                                             title= audiodesc,
-                                             caption= audiodesc)
+            sresult = InlineQueryResultAudio(id = uuid4(),
+                                             audio_url = each["URL"],
+                                             title= "\"{}\"".format(each["Text"]),
+                                             performer= heroname)
             results.append(sresult)
         bot.answerInlineQuery(update.inline_query.id, results=results, cache_time = 1)
 
