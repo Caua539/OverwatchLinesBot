@@ -130,7 +130,7 @@ def file_download(filelist, hero):
 
         filelist[i]["URL"] = "http://gamequotes.mooo.com/overwatch/{}".format(hero) + filename
         bar.update(j)
-    print ("FILE DOWNLOAD END.\n")
+    print (" FILE DOWNLOAD END.\n")
     return filelist
 
 
