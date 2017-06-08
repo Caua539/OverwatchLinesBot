@@ -123,12 +123,30 @@ def file_download(filelist, hero):
 
         mp3_file = AudioSegment.from_file(file_path, url[-3:])
 
-        filename = "/{}.mp3".format(filename.replace(filename[-4:], ''))
-        file_path =  direc + filename
+        export_filename = "/{}.mp3".format(filename.replace(filename[-4:], ''))
+        export_path =  direc + export_filename
         
-        mp3_file.export(file_path, format="mp3")
+        mp3_file.export(export_path, format="mp3")
+        
+        file_size = os.stat(export_path).st_size / 1024
+        if file_size < 8:
+            print("{}\n".format(item["Line"]))
+            print("\nORIGINAL SMALL FILE: %.2f" % file_size)
+            os.remove(export_path)
+            mp3_file = AudioSegment.from_file(file_path, url[-3:])
+            silence = AudioSegment.silent(duration=500, frame_rate=88200)
+            mp3_file = mp3_file + silence
+            
+            export_filename = "/{}.mp3".format(filename.replace(filename[-4:], ''))
+            export_path =  direc + export_filename
 
-        filelist[i]["URL"] = "http://gamequotes.mooo.com/overwatch/{}".format(hero) + filename
+            mp3_file.export(export_path, format="mp3")
+            
+            file_size = os.stat(export_path).st_size / 1024
+            print ("MP3 FILE SIZE: %.2f\n" % file_size)
+            
+
+        filelist[i]["URL"] = "http://gamequotes.mooo.com/overwatch/{}".format(hero) + export_filename
         bar.update(j)
     print (" FILE DOWNLOAD END.\n")
     return filelist
@@ -170,7 +188,7 @@ def main():
     dbFuel = file_download(filelist, hero)
     print("DB INSERT START...")
     ID = get_id()
-    #dbInsert(ID, hero, dbFuel)
+    dbInsert(ID, hero, dbFuel)
     print ("DB INSERT END.\n")
     get_id()
 
