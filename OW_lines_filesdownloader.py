@@ -6,6 +6,7 @@ import re
 import requests
 import os
 import progressbar
+import json
 
 from OW_lines_DBManager import Clip, Personagem
 from bs4 import BeautifulSoup
@@ -93,7 +94,7 @@ def listMaker(data, hero):
             if div_obj.has_attr("class") and div_obj["class"][0] == "fullMedia":
                 finalList[i]["URL"] = div_obj.a.get('href')
         bar.update(j)
-    print ("URLs RECOVERED.\n")
+    print (" URLs RECOVERED.\n")
     return finalList
 
 
@@ -105,10 +106,13 @@ def file_download(filelist, hero):
     direc = "DOWNLOAD/{}".format(hero)
     os.makedirs(direc+"/original")
     regex_patt = r'[^-a-z0-9_.]+'
+    fileversion = "%04d" % filename_version(hero)
+    print (fileversion)
 
     j = 0
     bar = progressbar.ProgressBar(max_value=len(filelist))
     print ("FILE DOWNLOAD START...\n")
+    
     for i, item in enumerate(filelist):
         j += 1
         url = item["URL"]
@@ -123,26 +127,33 @@ def file_download(filelist, hero):
 
         mp3_file = AudioSegment.from_file(file_path, url[-3:])
 
-        export_filename = "/{}.mp3".format(filename.replace(filename[-4:], ''))
+        export_filename = "/{}--{}.mp3".format(filename.replace(filename[-4:], ''), fileversion)
         export_path =  direc + export_filename
         
         mp3_file.export(export_path, format="mp3")
         
         file_size = os.stat(export_path).st_size / 1024
         if file_size < 8:
-            print("{}\n".format(item["Line"]))
-            print("\nORIGINAL SMALL FILE: %.2f" % file_size)
-            os.remove(export_path)
+            print("\n{}".format(item["Line"]))
+            
+            print("ORIGINAL SMALL FILE: %.2f" % file_size)
+    
             mp3_file = AudioSegment.from_file(file_path, url[-3:])
-            silence = AudioSegment.silent(duration=500, frame_rate=88200)
+            if file_size < 4.2:
+                silence = AudioSegment.silent(duration=500, frame_rate=192000)
+            else:
+                silence = AudioSegment.silent(duration=500, frame_rate=192000)
             mp3_file = mp3_file + silence
             
-            export_filename = "/{}.mp3".format(filename.replace(filename[-4:], ''))
+            os.remove(export_path)
+            
+            export_filename = "/{}--{}.mp3".format(filename.replace(filename[-4:], ''), fileversion)
             export_path =  direc + export_filename
-
+        
             mp3_file.export(export_path, format="mp3")
             
             file_size = os.stat(export_path).st_size / 1024
+            
             print ("MP3 FILE SIZE: %.2f\n" % file_size)
             
 
@@ -150,8 +161,29 @@ def file_download(filelist, hero):
         bar.update(j)
     print (" FILE DOWNLOAD END.\n")
     return filelist
+    
 
+    
+def filename_version(hero):
+    
+    jsonfile = "AUXI/fileversion.json"
+    dicy = {}
+    if os.path.exists(jsonfile):   
+        with open(jsonfile, "r+") as fp:
+            dicy = json.load(fp)
+        os.remove(jsonfile)
+        
+    if hero in dicy.keys():
+        dicy[hero] += 1
+    else:
+        dicy[hero] = 1
+    
+    with open(jsonfile, 'w') as fp:   
+        json.dump(dicy, fp, indent=4)
 
+    
+    return dicy[hero]
+        
 
 ###############################################################################################################
 #Inserção no banco
@@ -181,14 +213,14 @@ def dbInsert(ID, hero, dbfuel):
 
 def main():
     print ("SCRIPT START...")
-    hero = "Ana"
-    data = webscrap("https://overwatch.gamepedia.com/Ana/Quotes")
+    hero = "D.Va"
+    data = webscrap("https://overwatch.gamepedia.com/D.Va/Quotes")
 
     filelist = listMaker(data, hero)
     dbFuel = file_download(filelist, hero)
     print("DB INSERT START...")
     ID = get_id()
-    dbInsert(ID, hero, dbFuel)
+    #dbInsert(ID, hero, dbFuel)
     print ("DB INSERT END.\n")
     get_id()
 
