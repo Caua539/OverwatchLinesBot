@@ -35,9 +35,17 @@ def webscrap(url):
         rows = each.find_all('tr')
     
         for row in rows:
+            ili = []
             cols = row.find_all('td')
-            cols = [ele.text.strip() for ele in cols]
-            data.append([ele for ele in cols if ele])
+            for ele in cols:
+                if 'https:' in ele.text.strip():
+                    ele = ele.audio.get('src').strip()
+                else:
+                    ele = ele.text.strip()
+                ili.append(ele)
+            itemlist = [ele for ele in ili if ele]
+                        
+            data.append(itemlist)
     return data
 
 ###############################################################################################################
@@ -74,27 +82,13 @@ def listMaker(data, hero):
 
         dicy = {}
         dicy["Line"] = each[0].strip()
+        print (dicy["Line"])
         dicy["URL"] = each[1]
         finalList.append(dicy)
         count += 1
         
     print ("FILES COUNT: {}".format(count))
-    print ("RECOVERING URLs...")
-    bar = progressbar.ProgressBar(max_value=len(finalList))
-    j = 0
-    for i, item in enumerate(finalList):
-        j += 1
-        url = item["URL"]
-        if "\n" in url:
-            continue
-        page = requests.get(url)
-        soup = BeautifulSoup(page.content, 'html.parser')
-        
-        for div_obj in soup.find_all("div"):
-            if div_obj.has_attr("class") and div_obj["class"][0] == "fullMedia":
-                finalList[i]["URL"] = div_obj.a.get('href')
-        bar.update(j)
-    print (" URLs RECOVERED.\n")
+
     return finalList
 
 
@@ -121,10 +115,12 @@ def file_download(filelist, hero):
         filename = slugify(filename, regex_pattern = regex_patt)
         file_path = direc + "/original/{}".format(filename)
         
+            
+        
         local_file = open(file_path, 'wb')
         local_file.write(requests.get(url).content)
         local_file.close()
-
+        
         mp3_file = AudioSegment.from_file(file_path, url[-3:])
 
         export_filename = "/{}--{}.mp3".format(filename.replace(filename[-4:], ''), fileversion)
@@ -133,14 +129,15 @@ def file_download(filelist, hero):
         mp3_file.export(export_path, format="mp3")
         
         file_size = os.stat(export_path).st_size / 1024
+        
         if file_size < 8:
-            print("\n{}".format(item["Line"]))
+            #print("\n{}".format(item["Line"]))
             
-            print("ORIGINAL SMALL FILE: %.2f" % file_size)
+            #print("ORIGINAL SMALL FILE: %.2f" % file_size)
     
             mp3_file = AudioSegment.from_file(file_path, url[-3:])
             if file_size < 4.2:
-                silence = AudioSegment.silent(duration=500, frame_rate=192000)
+                silence = AudioSegment.silent(duration=600, frame_rate=192000)
             else:
                 silence = AudioSegment.silent(duration=500, frame_rate=192000)
             mp3_file = mp3_file + silence
@@ -154,7 +151,7 @@ def file_download(filelist, hero):
             
             file_size = os.stat(export_path).st_size / 1024
             
-            print ("MP3 FILE SIZE: %.2f\n" % file_size)
+            #print ("MP3 FILE SIZE: %.2f\n" % file_size)
             
 
         filelist[i]["URL"] = "http://gamequotes.mooo.com/overwatch/{}".format(hero) + export_filename
@@ -215,7 +212,6 @@ def main():
     print ("SCRIPT START...")
     hero = "D.Va"
     data = webscrap("https://overwatch.gamepedia.com/D.Va/Quotes")
-
     filelist = listMaker(data, hero)
     dbFuel = file_download(filelist, hero)
     print("DB INSERT START...")
