@@ -39,7 +39,12 @@ def webscrap(url):
             cols = row.find_all('td')
             for ele in cols:
                 if 'https:' in ele.text.strip():
-                    ele = ele.audio.get('src').strip()
+                    audios = ele.find_all('audio')
+                    if len(audios) > 1:
+                        ele = '\n'.join(item.get('src') for item in audios)
+                    else:
+                        ele = ele.audio.get('src').strip()
+
                 else:
                     ele = ele.text.strip()
                 ili.append(ele)
@@ -75,15 +80,15 @@ def listMaker(data, hero):
         for i, s in enumerate(each):
             if "\n" in s:
                 line1, line2, *extra = s.split("\n")
-                if ("{}:".format(hero)) in line1 or (":{}_".format(hero)) in line1:
+                if ("{}:".format(hero)) in line1 or ("{}_-_".format(hero)) in line1:
                     each[i] = line1
-                elif ("{}:".format(hero)) in line2 or (":{}_".format(hero)) in line2:
+                elif ("{}:".format(hero)) in line2 or ("{}_-_".format(hero)) in line2:
                     each[i] = line2
 
         dicy = {}
         dicy["Line"] = each[0].strip()
-        print (dicy["Line"])
         dicy["URL"] = each[1]
+
         finalList.append(dicy)
         count += 1
         
@@ -99,6 +104,8 @@ def file_download(filelist, hero):
     
     direc = "DOWNLOAD/{}".format(hero)
     os.makedirs(direc+"/original")
+
+    herolower = '{}_-_'.format(hero.lower())
     regex_patt = r'[^-a-z0-9_.]+'
     fileversion = "%04d" % filename_version(hero)
     print (fileversion)
@@ -113,10 +120,12 @@ def file_download(filelist, hero):
 
         filename = requests.utils.unquote(url.split('/')[-1])
         filename = slugify(filename, regex_pattern = regex_patt)
+        if herolower not in filename:
+            filename = herolower+filename
         file_path = direc + "/original/{}".format(filename)
-        
-            
-        
+
+        #print("\n{}:....................{}".format(item["URL"], file_path))
+
         local_file = open(file_path, 'wb')
         local_file.write(requests.get(url).content)
         local_file.close()
@@ -210,13 +219,15 @@ def dbInsert(ID, hero, dbfuel):
 
 def main():
     print ("SCRIPT START...")
-    hero = "D.Va"
-    data = webscrap("https://overwatch.gamepedia.com/D.Va/Quotes")
+    hero = "Junkrat"
+    data = webscrap("https://overwatch.gamepedia.com/Junkrat/Quotes")
+    #for item in data:
+        #print (item)
     filelist = listMaker(data, hero)
     dbFuel = file_download(filelist, hero)
     print("DB INSERT START...")
     ID = get_id()
-    #dbInsert(ID, hero, dbFuel)
+    dbInsert(ID, hero, dbFuel)
     print ("DB INSERT END.\n")
     get_id()
 
