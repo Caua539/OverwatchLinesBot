@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 from pony.orm import *
 from pydub import AudioSegment
 from slugify import slugify
+from urllib.parse import unquote
 
 ##############################################################################################################
 #Carregando o DATABASE
@@ -80,9 +81,9 @@ def listMaker(data, hero):
         for i, s in enumerate(each):
             if "\n" in s:
                 line1, line2, *extra = s.split("\n")
-                if ("{}:".format(hero)) in line1 or ("{}_-_".format(hero)) in line1:
+                if ("{}:".format(hero)) in unquote(line1) or ("{}_-_".format(hero)) in unquote(line1):
                     each[i] = line1
-                elif ("{}:".format(hero)) in line2 or ("{}_-_".format(hero)) in line2:
+                elif ("{}:".format(hero)) in unquote(line2) or ("{}_-_".format(hero)) in unquote(line2):
                     each[i] = line2
 
         dicy = {}
@@ -105,7 +106,7 @@ def file_download(filelist, hero):
     direc = "DOWNLOAD/{}".format(hero)
     os.makedirs(direc+"/original")
 
-    herolower = '{}_-_'.format(hero.lower())
+    herolower = '{}_-_'.format(slugify(hero.lower()))
     regex_patt = r'[^-a-z0-9_.]+'
     fileversion = "%04d" % filename_version(hero)
     print (fileversion)
@@ -124,7 +125,7 @@ def file_download(filelist, hero):
             filename = herolower+filename
         file_path = direc + "/original/{}".format(filename)
 
-        #print("\n{}:....................{}".format(item["URL"], file_path))
+        #print("\n{} :....................{}".format(item["URL"], file_path))
 
         local_file = open(file_path, 'wb')
         local_file.write(requests.get(url).content)
@@ -219,8 +220,8 @@ def dbInsert(ID, hero, dbfuel):
 
 def main():
     print ("SCRIPT START...")
-    hero = "Junkrat"
-    data = webscrap("https://overwatch.gamepedia.com/Junkrat/Quotes")
+    hero = "Widowmaker"
+    data = webscrap("https://overwatch.gamepedia.com/Widowmaker/Quotes")
     #for item in data:
         #print (item)
     filelist = listMaker(data, hero)
