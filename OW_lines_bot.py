@@ -3,7 +3,7 @@
 #pylint: disable=locally-disabled
 
 """
-    Telegram bot that sends a voice message with a game voice line.
+    Telegram bot that sends a voice message with a overwatch voice line.
     Author: Cauã Martins Pessoa <caua539@gmail.com>
 """
 
@@ -33,24 +33,18 @@ with open('config.json') as config_file:
 
 def start_command(bot, update):
     """ Handle the /start command. """
-    bot.sendMessage(update.message.chat_id, text='Hi, my name is @gamevoicesbot, I can send'
-                                                 ' you voice messages with some games voice lines, use'
+    bot.sendMessage(update.message.chat_id, text='Hi, my name is @overlinesbot, I can send'
+                                                 ' you audio files with some Overwatch voice lines, use'
                                                  ' the command\n/help to see how to use me.')
 
 def help_command(bot, update):
     """ Handle the /help command. """
     bot.sendMessage(update.message.chat_id,
-                    text='Usage: \nYou don\'t need to add me to a group, I\' an inline bot.\n\n'
-                         'Write \'@gamevoicesbot CHARACTER/VOICE LINE\' in chat to get a voice '
+                    text='Usage: \nYou don\'t need to add me to a group, I\'m an inline bot.\n\n'
+                         'Write \'@overlinesbot CHARACTER/VOICE LINE\' in chat to get a voice '
                          'line in return, then just click it to send it.\n'
-                         'Example: \'@gamevoicesbot Pudge/Get Over Here\'\n\n'
-                         'Note that there\'s no need to use the full name of the character or pack.'
-                         'Characters/pack with two or more names should be separated with underlines.\n'
-                         'Ex: phantom_assassin.\n\n'
-                         'Current games:\n'
-                         '- Dota 2 (all characters, all voice lines)\n'
-                         '- Overwatch (only 5 characters, not all lines, work in progress)\n'
-                         '- Some easter eggs ;)\n')
+                         'Example: \'@overlinesbot Pharah/Get Back\'\n\n'
+                         'Note that there\'s no need to use the full name of the character or voice line.\n')
 
 @run_async
 def response_inline(bot, update):

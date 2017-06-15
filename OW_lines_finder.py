@@ -24,7 +24,7 @@ def get_responses(query, specific_hero):
     if specific_hero is not None:
         bd_query = select((c.personagem.nome, c.texto, c.url) for c in Clip if
                           specific_hero.lower() in c.personagem.nome.lower() and query.lower() in
-                          c.texto.lower()).order_by(raw_sql('RANDOM()'))[:5]
+                          c.texto.lower()).order_by(raw_sql('RANDOM()'))[:15]
 
         if bd_query is not None and bd_query != []:
             hero = bd_query[0][0]
@@ -41,7 +41,7 @@ def get_responses(query, specific_hero):
             return result
     else:
         bd_query = select((c.personagem.nome, c.texto, c.url) for c in Clip if query.lower() in 
-                           c.texto.lower()).order_by(raw_sql('RANDOM()'))[:10]
+                           c.texto.lower()).order_by(raw_sql('RANDOM()'))[:25]
         
         if bd_query is not None and bd_query != []:
             for each in bd_query:
