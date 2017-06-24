@@ -220,8 +220,8 @@ def dbInsert(ID, hero, dbfuel):
 
 def main():
     print ("SCRIPT START...")
-    hero = "Mei"
-    data = webscrap("https://overwatch.gamepedia.com/Mei/Quotes")
+    hero = "Reinhardt"
+    data = webscrap("https://overwatch.gamepedia.com/Reinhardt/Quotes")
     #for item in data:
         #print (item)
     filelist = listMaker(data, hero)
